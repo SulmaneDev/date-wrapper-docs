@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DateWrapper Library Test Usages</title>
+    <script src="./date-wrapper.js"></script>
+    <script>
+        const d1 = new DateWrapper('2025-09-07');
+        console.log(d1.isValid()); 
+        console.log(d1.toDate()); 
+        console.log(d1.valueOf()); 
+        console.log(d1.clone().format('YYYY-MM-DD')); 
+        
+        
+        try {
+            new DateWrapper('invalid');
+        } catch (e) {
+            console.log(e.message); 
+        }
+        
+        
+        console.log('Flexible Parsing:');
+        console.log(new DateWrapper('now').format('YYYY-MM-DD HH:mm')); 
+        console.log(new DateWrapper('today').format('YYYY-MM-DD')); 
+        console.log(new DateWrapper('tomorrow').format('YYYY-MM-DD')); 
+        console.log(new DateWrapper('yesterday').format('YYYY-MM-DD')); 
+        console.log(new DateWrapper('in 5 days').format('YYYY-MM-DD')); 
+        console.log(new DateWrapper('next monday').format('YYYY-MM-DD')); 
+        console.log(new DateWrapper('third tuesday of next month').format('YYYY-MM-DD')); 
+        console.log(new DateWrapper('15/09/2025').format('YYYY-MM-DD')); 
+        console.log(new DateWrapper('2025-09-15T14:30:00Z').format('YYYY-MM-DD HH:mm:ss')); 
+        
+        
+        console.log('Formatting:');
+        console.log(d1.format('YYYY-MM-DD')); 
+        console.log(d1.format('MMM D, YYYY h:mm A')); 
+        console.log(d1.formatWithTimeZone('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })); 
+        
+        
+        console.log('Arithmetic:');
+        const d2 = d1.clone().add(10, 'day').add(2, 'month').addYears(1);
+        console.log(d2.format('YYYY-MM-DD')); 
+        d2.subtract(1, 'year');
+        console.log(d2.format('YYYY-MM-DD')); 
+        d2.addDays(-5).addMonths(3);
+        console.log(d2.format('YYYY-MM-DD')); 
+        
+        
+        const dFeb = new DateWrapper('2025-01-31').add(1, 'month');
+        console.log(dFeb.format('YYYY-MM-DD')); 
+        
+        
+        console.log('ISO Week:');
+        console.log(d1.isoWeek()); 
+        console.log(d1.isoWeekYear()); 
+        const dIso = DateWrapper.fromIsoWeek(2025, 37, 7); 
+        console.log(dIso.format('YYYY-MM-DD')); 
+        
+        
+        console.log('RRULE:');
+        const rruleDaily = d1.rrule('FREQ=DAILY;INTERVAL=2;COUNT=3');
+        console.log(rruleDaily.all().map(d => d.toISOString().slice(0,10))); 
+        
+        const rruleWeekly = d1.rrule({freq: 'WEEKLY', byday: ['MO', 'WE'], count: 4});
+        console.log(rruleWeekly.next(4).map(d => d.toISOString().slice(0,10))); 
+        
+        const rruleMonthly = d1.rrule('FREQ=MONTHLY;BYMONTHDAY=1,15;COUNT=3');
+        console.log(rruleMonthly.all().map(d => d.toISOString().slice(0,10))); 
+        
+        
+        console.log('Business Calendar:');
+        const holidays = ['2025-12-25', '2025-01-01'];
+        const cal = DateWrapper.businessCalendar({holidays, workweek: [1,2,3,4,5]});
+        console.log(cal.isHoliday('2025-12-25')); 
+        console.log(cal.isWorkday('2025-09-08')); 
+        console.log(cal.isWorkday('2025-09-07')); 
+        
+        const dBiz = new DateWrapper('2025-09-07').addBusinessDays(3, cal);
+        console.log(dBiz.format('YYYY-MM-DD')); 
+        console.log(dBiz.isBusinessDay(cal)); 
+        
+        
+        console.log('DateRange:');
+        const range = d1.rangeTo('2025-09-10');
+        console.log(range.contains('2025-09-08')); 
+        console.log(range.contains('2025-09-11')); 
+        
+        const range2 = new DateRange('2025-09-05', '2025-09-09');
+        const intersect = range.intersect(range2);
+        console.log(intersect ? `${intersect.start.toISOString().slice(0,10)} to ${intersect.end.toISOString().slice(0,10)}` : 'null'); 
+        
+        console.log(range.toArray({unit: 'day', amount: 1}).map(d => d.toISOString().slice(0,10))); 
+        
+        
+        console.log('Duration:');
+        const dur = new Duration({years: 1, months: 2, days: 3, hours: 4});
+        console.log(dur.toISO()); 
+        
+        const durIso = Duration.fromISO('P1Y2M3DT4H5M6S');
+        console.log(durIso); 
+        
+        const dDur = d1.clone().addDuration(dur);
+        console.log(dDur.format('YYYY-MM-DD HH')); 
+        
+        
+        console.log('Humanize Diff:');
+        const dPast = new DateWrapper('2025-09-01');
+        console.log(d1.humanizeDiff(dPast)); 
+        console.log(d1.humanizeDiff(new DateWrapper('2025-09-14'))); 
+        console.log(d1.humanizeDiff(d1)); 
+        
+        
+        console.log('Diff and Compare:');
+        console.log(d1.diff(dPast, 'day')); 
+        
+        console.log(d1.compare(dPast)); 
+        console.log(d1.compare(d1)); 
+        
+        
+        console.log('RFC3339:');
+        console.log(d1.toRFC3339()); 
+        
+        
+        if (typeof Temporal !== 'undefined') {
+            console.log('Temporal:');
+            const tempInst = d1.toTemporalInstant();
+            console.log(tempInst.toString()); 
+            
+            const plainDt = Temporal.PlainDateTime.from('2025-09-07T00:00:00');
+            const dTemp = DateWrapper.fromTemporal(plainDt);
+            console.log(dTemp.format('YYYY-MM-DD')); 
+        } else {
+            console.log('Temporal not available in this browser.');
+        }
+        
+        
+        console.log('Moon Phase:');
+        console.log(d1.moonPhase()); 
+        
+        
+        console.log('Sunrise/Sunset:');
+        const lat = 37.7749; 
+        const lon = -122.4194;
+        console.log(d1.sunrise(lat, lon).toISOString().slice(11,16)); 
+        console.log(d1.sunset(lat, lon).toISOString().slice(11,16)); 
+        
+        
+        console.log('Plugin:');
+        const plugin = {
+            install: function(DateWrapper) {
+                DateWrapper.prototype.customMethod = function() {
+                    return 'Custom: ' + this.format('YYYY');
+                };
+            }
+        };
+        DateWrapper.use(plugin);
+        console.log(d1.customMethod()); 
+        
+        DateWrapper.use(function(DateWrapper) {
+            DateWrapper.prototype.anotherMethod = function() { return 'Another'; };
+        });
+        console.log(d1.anotherMethod()); 
+        
+        
+        console.log('StartOf/EndOf:');
+        const dStart = d1.clone().startOf('month');
+        console.log(dStart.format('YYYY-MM-DD HH:mm:ss')); 
+        const dEnd = d1.clone().endOf('week');
+        console.log(dEnd.format('YYYY-MM-DD HH:mm:ss.SSS')); 
+        
+        
+        console.log('Static Utils:');
+        console.log(DateWrapper.isLeapYear(2024)); 
+        console.log(DateWrapper.isLeapYear(2025)); 
+        console.log(DateWrapper.daysInMonth(2025, 2)); 
+        console.log(DateWrapper.daysInMonth(2024, 2)); 
+    </script>
+</head>
+<body>
+    <p>Open console to see outputs.</p>
+</body>
+</html>
