@@ -134,6 +134,10 @@ const occ = new DateWrapper('2025-01-01').rrule('FREQ=WEEKLY;BYDAY=MO,WE;COUNT=5
         <p>👉 See a full usage demo here:</p>
         <a href="./datewrapper-demo.html" target="_blank">Open Console Demo Page</a>
       </div>
+        <div class="example">
+        <p>👉 Download data-wrapper:</p>
+        <a href="#download" id="download">Open Console Demo Page</a>
+      </div>
     </div>
 
     <div class="section">
@@ -222,5 +226,16 @@ new DateWrapper().logYear();</code></pre>
       <p>© 2025 DateWrapper.js — MIT License</p>
     </div>
   </div>
+  <script>
+      document.getElementById('download').addEventListener('click', () => {
+    const url = 'https://sulmanedev.github.io/date-wrapper-docs/date-wrapper.js';
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'date-wrapper.js'; 
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  });
+  </script>
 </body>
 </html>
